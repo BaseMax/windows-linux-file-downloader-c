@@ -1,10 +1,10 @@
 /**
  *
  * @Author: Max Base
- * @Repository: https://github.com/BaseMax/windows-linux-file-downloader-c
+ * @Repository: https://github.com/BaseMax/file-downloader-c
  * @Date: 09/04/2024
- * @Build (Windows): gcc downloader.c -o downloader  -g -Wextra -std=c11 -lws2_32
- * @Build (Linux): gcc downloader.c -o downloader  -g -Walloca -Wextra -Wall -fsanitize=address,undefined -std=c11
+ * @Build (Windows): gcc downloader.c -o downloader -g -Wextra -std=c11 -lws2_32
+ * @Build (Linux): gcc downloader.c -o downloader -g -Walloca -Wextra -Wall -fsanitize=address,undefined -std=c11
  *
  */
 
@@ -31,13 +31,61 @@
 
 #define BUFFER_SIZE 1024
 
-int main()
+void parse_url(const char *url, char *hostname, char *path)
 {
-	const char *hostname = "example.com";
-	const char *path = "/file.txt";
+	const char *start;
+	const char *end;
+
+	if (strncmp(url, "https://", 8) == 0)
+	{
+		fprintf(stderr, "Error: HTTPS protocol is not supported.\n");
+		exit(1);
+	}
+
+	if (strncmp(url, "http://", 7) == 0)
+	{
+		start = url + 7;
+	}
+	else
+	{
+		start = url;
+	}
+
+	end = strchr(start, '/');
+	if (end != NULL)
+	{
+		strncpy(hostname, start, end - start);
+		hostname[end - start] = '\0';
+		strcpy(path, end);
+	}
+	else
+	{
+		strcpy(hostname, start);
+		path[0] = '/';
+		path[1] = '\0';
+	}
+}
+int main(int argc, char *argv[])
+{
 	const char *port = "80";
-	char request[256];
+	char hostname[256];
+	char path[256];
+	char request[1024];
 	char buffer[BUFFER_SIZE];
+
+	if (argc != 2)
+	{
+		fprintf(stderr, "Usage: %s <URL>\n", argv[0]);
+		return 1;
+	}
+
+	parse_url(argv[1], hostname, path);
+
+	snprintf(request, sizeof(request), "GET %s HTTP/1.0\r\nHost: %s\r\n\r\n", path, hostname);
+
+	printf("Request:\n%s\n", request);
+	printf("Hostname: %s\n", hostname);
+	printf("Path: %s\n", path);
 
 	int sockfd;
 #ifdef _WIN32
@@ -59,8 +107,6 @@ int main()
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-
-	snprintf(request, sizeof(request), "GET %s HTTP/1.0\r\nHost: %s\r\n\r\n", path, hostname);
 
 	if ((rv = getaddrinfo(hostname, port, &hints, &servinfo)) != 0)
 	{
@@ -146,6 +192,8 @@ int main()
 #else
 	close(sockfd);
 #endif
+
+	printf("Done.\n");
 
 	return 0;
 }
