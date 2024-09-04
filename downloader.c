@@ -65,6 +65,7 @@ void parse_url(const char *url, char *hostname, char *path)
 		path[1] = '\0';
 	}
 }
+
 int main(int argc, char *argv[])
 {
 	const char *port = "80";
