@@ -1,6 +1,6 @@
 # Windows/Linux File Downloader in C
 
-This repository contains a simple C program that demonstrates how to download a file over HTTP from a server using sockets. The program is cross-platform, working on both Windows and Linux systems.
+A C program that demonstrates how to download a file over HTTP from a server using sockets. The program is cross-platform, working on both Windows and Linux systems.
 
 ## Features
 
